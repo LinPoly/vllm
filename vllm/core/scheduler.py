@@ -82,6 +82,16 @@ class Scheduler:
 
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
+
+        # If the number of tokens in current request exceeds 
+        # the upper bound, log and discard the request.
+        num_tokens = seq_group.get_seqs()[0].get_len()
+        max_num_tokens = self.scheduler_config.max_num_batched_tokens
+        if num_tokens > max_num_tokens:
+            logger.error(f'the number of tokens in request {seq_group.request_id}: {num_tokens}\n'
+                         f'the max number of tokens in a batch: {max_num_tokens}')
+            return
+        
         self.waiting.append(seq_group)
 
     def abort_seq_group(self, request_id: str) -> None:
